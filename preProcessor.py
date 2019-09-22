@@ -4,6 +4,44 @@ import re
 import glob
 
 
+def placefuncMacro(line, name, component_dict):
+	matched = re.search(r'\s*((\w+)\s*\(\s*((\w+)\s*(,\s*\w+\s*))*\))\s*(.)*$', line)
+
+	# 	print("".join(macro_compoents[3:]))
+	argments = matched.group(3).split(",")
+	params = component_dict["params"].split(",")
+	macro_result = component_dict["func"]
+
+	i = 0;
+	for arg in argments:
+		arg = arg.lstrip().rstrip()
+		toReplace = params[i].lstrip().rstrip()
+		macro_result = macro_result.replace(toReplace, arg);
+		i += 1
+
+	line = line.replace(matched.group(1), macro_result)
+
+	return line
+
+def plantMacros(fileName):
+	global constants_dict, funcMacro_dict, ppLines
+	with open(fileName, 'r') as reader:
+		lines = reader.readlines()
+
+		for line in lines:
+			if("#define" in line):
+				continue
+			else:	
+				for key in constants_dict.keys():
+					if key in line:
+						line = line.replace(key, constants_dict[key])
+
+				for key in funcMacro_dict.keys():
+					if key in line:
+						line = placefuncMacro(line, key, funcMacro_dict[key])	
+				ppLines.append(line)
+				
+	create_pp_output(fileName)
 
 
 constants_dict = dict()
@@ -11,14 +49,13 @@ funcMacro_dict = dict()
 
 
 def collectMacros(fileName):
-
+	global constants_dict, funcMacro_dict
 	with open(fileName, 'r') as reader:
 		lines = reader.readlines()
 		for line in lines:
 			line = line.lstrip()
 			if(line.startswith("#define")):
 				macro_compoents = line.split()
-				# print(macro_compoents)
 
 				if(len(macro_compoents) == 3):
 						constants_dict[macro_compoents[1].split("(")[0]] = "".join(macro_compoents[2:])
@@ -43,22 +80,18 @@ def parse_one_file(fileName):
 		lines = reader.readlines()
 		for line in lines:
 			if "pragma once" in line:
-				# print(line)
 				if fileName in definesFlag:
 					break;
 				else:
 					definesFlag.append(fileName)
 			elif "ifndef" in line:
 				if fileName in definesFlag:
-					# print(line)
 					break;
 				else:
-					# print(line)
 					definesFlag.append(fileName)
 
 			elif line.startswith("#include"):
 				if "\"" in line:
-					# print(line.split()[1].replace("\"", ""))
 					parse_one_file(line.split()[1].replace("\"", ""))
 			else:
 				ppLines.append(line)
@@ -80,10 +113,11 @@ if __name__ == "__main__":
 		create_pp_output(fileName)
 
 	for ppFileName in glob.glob("*.pp"):
+		constants_dict = {}
+		funcMacro_dict = {}
 		collectMacros(ppFileName)
-	
-		# realtedFile = getheaders(fileName, False)
-		# print(realtedFile)
-		# HandleOneFile(fileName)
+		ppLines = []
+		plantMacros(ppFileName)
+
 		
 
