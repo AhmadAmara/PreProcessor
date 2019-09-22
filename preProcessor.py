@@ -1,111 +1,38 @@
 import os
 import sys
 import re
+import glob
 
 
-# def parseFuncMacro(funcMacro):
-# constants_dict = dict()
-# funcMacro_dict = dict()
-
-# def handleMacros(content):
-# 	global constants_dict, funcMacro_dict
-
-# 	with open(out.pp, 'r') as reader:
-# 		lines = content.split("\n")
-		
-# 		lines = reader.readlines()
-
-# 		# macros_dic = dict()
-# 		# simpleMacro_dic = dict()
-
-# 		for line in lines:
-# 			line = line.lstrip()
-# 			if(line.startswith("#define")):
-# 				# macro = line.replace("#define ", "")
-# 				# print(macro)
-# 				# if(re.search(r'\w\s+\w', macro)):)
-# 					# tokens = macro.split()
-# 					# macros_dic[tokens[0]] = tokens[1]
-# 					# print(tokens[0])
-# 					# print(tokens[1])
-# 				# matched = re.search(r'\s*(\w+)\s*\(\s*((\w+)\s*(,\s*\w+\s*))*\)\s*(.)*$', line)
-# 				# if matched:
-
-# 					# print(matched.group(0))
-# 					# print(matched.group(1))
-# 					# print(matched.group(2))
-# 					# print(matched.group(3))
-# 					# print((line.split()[2:]))
-
-# 					# print("".join((line.split()[3:])))
-# 					macro_compoents = line.split()
-# 					# print(macro_compoents)
-# 					# print("$$$")
-# 					# print("".join(macro_compoents[3:]))
-# 					# print(macro_compoents[1].split("(")[0])
-# 					if(len(macro_compoents) == 3):
-# 						print(macro_compoents)
-# 						constants_dict[macro_compoents[1].split("(")[0]] = "".join(macro_compoents[2:])
-# 					else:	
-# 						funcMacro_dict[macro_compoents[1].split("(")[0]] = "".join(macro_compoents[3:])
-
-# 					content = content.replace(line, "")
 
 
-# 	# for key in macros_dic.keys():
-# 	# 	matched = re.search(r'\s*(\w+)\s*\(\s*((\w+)\s*(,\s*\w+\s*))*\)\s*', key):
-# 	# 	if matched:
-# 	# 		print()
-# 	# 	content = content.replace(key, parseFuncMacro(macros_dic[key]));
-# 	# return content
+constants_dict = dict()
+funcMacro_dict = dict()
 
-# #creating one file with the name out.pp that conatin all the files we want to proccess
-# def HandleOneFile(fileName):
-# 	headers = []
-# 	with open(fileName, 'r') as reader:
-# 		lines = reader. readlines()
-# 		for line in lines:
-# 			if line.startswith("#include"):
-# 				if "\"" in line:
-# 					headers.append((line.split()[1]).replace("\"", ""))
-# 	# if fileName.endwith("cpp"):
-# 	# 	with open(fileName.replace("cpp", "pp"), 'w') as writer:
-# 	# 		print(fileName.replace("cpp", "pp"))
-# 	# 		# for fileName in filesToParse:
-# 	# 		# 	writer.write("\n")
-# 	# 		with open(fileName, 'r') as reader:
-# 	# 			ppContent = reader.read()#handleMacros(reader.read())
+
+def collectMacros(fileName):
+
+	with open(fileName, 'r') as reader:
+		lines = reader.readlines()
+		for line in lines:
+			line = line.lstrip()
+			if(line.startswith("#define")):
+				macro_compoents = line.split()
+				# print(macro_compoents)
+
+				if(len(macro_compoents) == 3):
+						constants_dict[macro_compoents[1].split("(")[0]] = "".join(macro_compoents[2:])
+				else:	
+					matched = re.search(r'\s*(\w+)\s*\(\s*((\w+)\s*(,\s*\w+\s*))*\)\s*(.)*$', line)
+					if matched:
+						# print("matched.group(0)",matched.group(0))
+						# print("matched.group(1)",matched.group(1))
+						# print("matched.group(2)",matched.group(2))
+						# print("matched.group(3)",matched.group(3))
+						# print("".join(macro_compoents[3:]))
+						funcMacro_dict[matched.group(1)] = {"params": matched.group(2), "func" : "".join(macro_compoents[3:]) }
+
 				
-# 	# 			writer.write(ppContent)
-
-# 	# else:
-# 	# 	with open(fileName, 'r') as reader:
-# 	# 			headerContent = reader.read()
-
-# realtedFiles = []
-
-# def getheaders(fileNamem, noHeaderFlag):
-# 	global realtedFiles, definesFlag
-# 	if noHeaderFlag:
-# 		print(realtedFiles)
-# 		return
-
-# 	else:
-# 		realtedFiles.append(fileName)
-# 		print(realtedFiles)
-# 		with open(fileName, 'r') as reader:
-# 			lines = reader.readlines()
-# 			for line in lines:
-# 				if line.startswith("#include"):
-# 					if "\"" in line:
-# 						print(line)
-# 						# headers.append((line.split()[1]).replace("\"", ""))
-# 						# headers.append((line.split()[1])
-# 						return getheaders(line.split()[1], False)
-
-# 			return getheaders("", True)
-
-
 
 ppLines = []
 definesFlag = []
@@ -116,7 +43,7 @@ def parse_one_file(fileName):
 		lines = reader.readlines()
 		for line in lines:
 			if "pragma once" in line:
-				print(line)
+				# print(line)
 				if fileName in definesFlag:
 					break;
 				else:
@@ -126,12 +53,12 @@ def parse_one_file(fileName):
 					# print(line)
 					break;
 				else:
-					print(line)
+					# print(line)
 					definesFlag.append(fileName)
 
 			elif line.startswith("#include"):
 				if "\"" in line:
-					print(line.split()[1].replace("\"", ""))
+					# print(line.split()[1].replace("\"", ""))
 					parse_one_file(line.split()[1].replace("\"", ""))
 			else:
 				ppLines.append(line)
@@ -152,6 +79,9 @@ if __name__ == "__main__":
 		parse_one_file(fileName)
 		create_pp_output(fileName)
 
+	for ppFileName in glob.glob("*.pp"):
+		collectMacros(ppFileName)
+	
 		# realtedFile = getheaders(fileName, False)
 		# print(realtedFile)
 		# HandleOneFile(fileName)
