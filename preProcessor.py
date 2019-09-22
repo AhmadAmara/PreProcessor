@@ -7,7 +7,6 @@ import glob
 def placefuncMacro(line, name, component_dict):
 	matched = re.search(r'\s*((\w+)\s*\(\s*((\w+)\s*(,\s*\w+\s*))*\))\s*(.)*$', line)
 
-	# 	print("".join(macro_compoents[3:]))
 	argments = matched.group(3).split(",")
 	params = component_dict["params"].split(",")
 	macro_result = component_dict["func"]
@@ -22,6 +21,7 @@ def placefuncMacro(line, name, component_dict):
 	line = line.replace(matched.group(1), macro_result)
 
 	return line
+
 
 def plantMacros(fileName):
 	global constants_dict, funcMacro_dict, ppLines
